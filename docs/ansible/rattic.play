@@ -24,9 +24,6 @@
       "msg=Ooops, db_platform must be either mysql or postgres"
       fail=yes
 
-  - name: Build a secret key
-    set_fact: secret={{ lookup('password', inventory_hostname + '/secret length=25') }}
-
   - name: setup EPEL
     action: command rpm -ivh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm creates=/etc/yum.repos.d/epel.repo
 
@@ -117,20 +114,9 @@
     action: mysql_user name={{db_user}} password={{db_passwd}} priv={{db_name}}.*:ALL state=present
     when: db_platform == "mysql"
 
-  - name: Setup virtualenv (mysql)
-    pip: requirements=/opt/apps/RatticWeb/requirements-mysql.txt virtualenv=/opt/apps/RatticWeb.venv
-    when: db_platform == "mysql"
-    notify:
-      - restart httpd
-
-  - name: Generate static content for checkout
-    django_manage: command=collectstatic virtualenv=/opt/apps/RatticWeb.venv app_path=/opt/apps/RatticWeb
-    when: release == "vagrant"
-
   ### postgresql setup tasks
   - name: install postgresql
     action: yum name={{ item }} state=latest
-    when: db_platform == "postgres"
     notify:
       - restart postgresql
     with_items:
@@ -140,41 +126,23 @@
 
   - name: initdb for postgresql
     command: /etc/init.d/postgresql initdb creates=/var/lib/pgsql/data/postgresql.conf
-    when: db_platform == "postgres"
-
-  - name: configure pg_hba.conf
-    action: lineinfile
-      dest=/var/lib/pgsql/data/pg_hba.conf
-      state=present
-      "line={{ item }}"
-      "insertbefore=^# TYPE"
-    when: db_platform == "postgres"
-    with_items:
-      - "local   rattic   rattic                trust"
-      - "host    rattic   rattic   127.0.0.0/8  trust"
-      - "host    rattic   rattic   ::1/128      trust"
-    notify:
-      - restart postgresql
-
   - name: set PostgreSQL to start
-    action: service name=postgresql state=started enabled=yes
-    when: db_platform == "postgres"
+    action: service name=postgresqld state=started enabled=yes
+    when: db_platform == "postgresql"
 
   - name: create PostgreSQL user
     action: postgresql_user name={{db_user}} password={{db_passwd}} encrypted=false state=present
-    when: db_platform == "postgres"
-    sudo_user: postgres
+    when: db_platform == "postgresql"
 
   - name: create PostgreSQL database
     action: postgresql_db name={{db_name}} owner={{db_user}} state=present
-    when: db_platform == "postgres"
-    sudo_user: postgres
+    when: db_platform == "postgresql"
     notify:
       - create initial user
 
   - name: Setup virtualenv (pgsql)
     pip: requirements=/opt/apps/RatticWeb/requirements-pgsql.txt virtualenv=/opt/apps/RatticWeb.venv
-    when: db_platform == "postgres"
+    when: db_platform == "postgresql"
     notify:
       - restart httpd
 
@@ -214,3 +182,12 @@
     action: service name=iptables state=restarted
   - name: reload httpd
     action: service name=httpd state=reloaded
+  - name: restart mysql
+    action: service name=mysqld state=restarted
+  - name: reload mysql
+    action: service name=mysqld state=reloaded
+  - name: restart postgresql
+    action: service name=postgresql state=restarted
+  - name: reload postgresql
+    action: service name=postgresql state=reloaded
+
