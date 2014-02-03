@@ -9,11 +9,17 @@ from django.contrib.auth.decorators import login_required
 from django.template.response import TemplateResponse
 from django.utils.timezone import now
 
+from two_factor.utils import default_device
+
 
 @login_required
 def profile(request):
     # Get a list of the users API Keys
     keys = ApiKey.objects.filter(user=request.user)
+    try:
+        backup_tokens = request.user.staticdevice_set.all()[0].token_set.count()
+    except Exception:
+        backup_tokens = 0
 
     # Get a list of the users current sessions
     sessions = request.user.session_set.filter(expire_date__gt=now())
@@ -32,6 +38,8 @@ def profile(request):
         'sessions': sessions,
         'form': form,
         'user': request.user,
+        'default_device': default_device(request.user),
+        'backup_tokens': backup_tokens,
     })
 
 
