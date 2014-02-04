@@ -10,6 +10,8 @@ from django.template.response import TemplateResponse
 from django.utils.timezone import now
 
 from two_factor.utils import default_device
+from two_factor.views import LoginView, DisableView, BackupTokensView
+from two_factor.views import SetupView, SetupCompleteView
 
 
 @login_required
@@ -104,3 +106,7 @@ def ldap_password_change(request,
         context.update(extra_context)
     return TemplateResponse(request, template_name, context,
                             current_app=current_app)
+
+
+class RatticTFADisableView(DisableView):
+    template_name = 'account_tfa_disable.html'
