@@ -37,7 +37,7 @@ class AccountViewTests(TestCase):
         # Log them in
         self.client = Client()
         loginurl = reverse('login')
-        resp = self.client.post(loginurl, {
+        self.client.post(loginurl, {
             'auth-username': self.username,
             'auth-password': self.password,
             'rattic_tfa_login_view-current_step': 'auth'
