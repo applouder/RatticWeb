@@ -36,8 +36,12 @@ class AccountViewTests(TestCase):
 
         # Log them in
         self.client = Client()
-        loginurl = reverse('django.contrib.auth.views.login')
-        self.client.post(loginurl, {'username': self.username, 'password': self.password})
+        loginurl = reverse('login')
+        resp = self.client.post(loginurl, {
+            'auth-username': self.username,
+            'auth-password': self.password,
+            'rattic_tfa_login_view-current_step': 'auth'
+            })
 
         # View the profile page to create an API key
         self.client.get(reverse('account.views.profile'))
@@ -118,9 +122,9 @@ class JavascriptTests(LiveServerTestCase):
     def test_login(self):
         self.selenium.get('%s%s' % (self.live_server_url, reverse('home')))
         self.waitforload()
-        username_input = self.selenium.find_element_by_name("username")
+        username_input = self.selenium.find_element_by_name("auth-username")
         username_input.send_keys(self.unorm.username)
-        password_input = self.selenium.find_element_by_name("password")
+        password_input = self.selenium.find_element_by_name("auth-password")
         password_input.send_keys(self.normpass)
         self.selenium.find_element_by_xpath('//input[@value="Login"]').click()
         self.assertEquals(self.selenium.current_url, '%s%s' % (self.live_server_url, reverse('cred.views.list')))
@@ -129,14 +133,14 @@ class JavascriptTests(LiveServerTestCase):
     def test_login_wrongpass(self):
         self.selenium.get('%s%s' % (self.live_server_url, reverse('home')))
         self.waitforload()
-        username_input = self.selenium.find_element_by_name("username")
+        username_input = self.selenium.find_element_by_name("auth-username")
         username_input.send_keys(self.unorm.username)
-        password_input = self.selenium.find_element_by_name("password")
+        password_input = self.selenium.find_element_by_name("auth-password")
         password_input.send_keys(self.normpass + 'wrongpass')
         self.selenium.find_element_by_xpath('//input[@value="Login"]').click()
-        self.assertEquals(self.selenium.current_url, '%s%s' % (self.live_server_url, reverse('django.contrib.auth.views.login')))
+        self.assertEquals(self.selenium.current_url, '%s%s?next=' % (self.live_server_url, reverse('login')))
         self.waitforload()
-        self.selenium.find_element_by_id('loginfailed')
+        self.selenium.find_element_by_xpath("//ul[contains(@class, 'errorlist')]").click()
 
     @skipIf(settings.LDAP_ENABLED, 'Test does not apply on LDAP')
     def test_login_disabled(self):
@@ -144,14 +148,14 @@ class JavascriptTests(LiveServerTestCase):
         self.unorm.save()
         self.selenium.get('%s%s' % (self.live_server_url, reverse('home')))
         self.waitforload()
-        username_input = self.selenium.find_element_by_name("username")
+        username_input = self.selenium.find_element_by_name("auth-username")
         username_input.send_keys(self.unorm.username)
-        password_input = self.selenium.find_element_by_name("password")
+        password_input = self.selenium.find_element_by_name("auth-password")
         password_input.send_keys(self.normpass)
         self.selenium.find_element_by_xpath('//input[@value="Login"]').click()
-        self.assertEquals(self.selenium.current_url, '%s%s' % (self.live_server_url, reverse('django.contrib.auth.views.login')))
+        self.assertEquals(self.selenium.current_url, '%s%s?next=' % (self.live_server_url, reverse('login')))
         self.waitforload()
-        self.selenium.find_element_by_id('loginfailed')
+        self.selenium.find_element_by_xpath("//ul[contains(@class, 'errorlist')]").click()
 
 
 JavascriptTests = override_settings(PASSWORD_HASHERS=('django.contrib.auth.hashers.MD5PasswordHasher',))(JavascriptTests)

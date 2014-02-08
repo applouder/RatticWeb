@@ -10,7 +10,7 @@ from django.template.response import TemplateResponse
 from django.utils.timezone import now
 
 from two_factor.utils import default_device
-from two_factor.views import DisableView, BackupTokensView, SetupView
+from two_factor.views import DisableView, BackupTokensView, SetupView, LoginView
 
 
 @login_required
@@ -111,9 +111,15 @@ class RatticTFADisableView(DisableView):
     template_name = 'account_tfa_disable.html'
     redirect_url = 'account.views.profile'
 
+
 class RatticTFABackupTokensView(BackupTokensView):
     template_name = 'account_tfa_backup_tokens.html'
     redirect_url = 'tfa_backup'
 
+
 class RatticTFASetupView(SetupView):
     redirect_url = 'account.views.profile'
+
+
+class RatticTFALoginView(LoginView):
+    template_name = 'account_tfa_login.html'

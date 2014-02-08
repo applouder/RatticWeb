@@ -33,8 +33,6 @@ MANAGERS = ADMINS
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
 
-SITE_ID = 1
-
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
 USE_I18N = True
@@ -126,11 +124,10 @@ LOCAL_APPS = (
     'help',
 )
 
-INSTALLED_APPS = LOCAL_APPS + (
+INSTALLED_APPS = (
     # External apps
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
@@ -142,7 +139,7 @@ INSTALLED_APPS = LOCAL_APPS + (
     'two_factor',
     'south',
     'tastypie',
-)
+) + LOCAL_APPS
 
 if os.environ.get("ENABLE_TESTS") == "1":
     INSTALLED_APPS += ('django_nose', )

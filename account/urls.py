@@ -3,9 +3,7 @@ from django.conf import settings
 
 from views import profile, newapikey, deleteapikey
 from views import RatticTFADisableView, RatticTFABackupTokensView
-from views import RatticTFASetupView
-
-from two_factor.views import LoginView
+from views import RatticTFASetupView, RatticTFALoginView
 
 
 urlpatterns = patterns('',
@@ -17,7 +15,7 @@ urlpatterns = patterns('',
         'next_page': settings.RATTIC_ROOT_URL}),
 
     # Two Factor Views
-    url(r'^login/$', LoginView.as_view(), name='login'),
+    url(r'^login/$', RatticTFALoginView.as_view(), name='login'),
     url(r'^two_factor/disable/$', RatticTFADisableView.as_view(), name='tfa_disable'),
     url(r'^two_factor/backup/$', RatticTFABackupTokensView.as_view(), name='tfa_backup'),
     url(r'^two_factor/setup/$', RatticTFASetupView.as_view(), name='tfa_setup'),
