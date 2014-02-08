@@ -55,8 +55,12 @@ class TestData:
 
     def login(self, username, password):
         c = Client()
-        loginurl = reverse('django.contrib.auth.views.login')
-        c.post(loginurl, {'username': username, 'password': password})
+        loginurl = reverse('login')
+        c.post(loginurl, {
+            'auth-username': username,
+            'auth-password': password,
+            'rattic_tfa_login_view-current_step': 'auth',
+            })
 
         return c
 
@@ -142,13 +146,6 @@ class TestData:
 
 
 class HomepageTest(TestCase):
-    def test_homepage_to_login_redirect(self):
-        client = Client()
-        response = client.get(reverse('home'), follow=True)
-        self.assertTrue(response.redirect_chain[0][0].endswith(reverse('django.contrib.auth.views.login')))
-        self.assertEqual(response.redirect_chain[0][1], 302)
-        self.assertEqual(response.status_code, 200)
-
     def test_admin_disabled(self):
         client = Client()
         response = client.get('/admin/')
